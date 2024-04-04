@@ -2,12 +2,12 @@ export type Key = string | number;
 export type Comparator = (a, b) => boolean;
 export const typeChecker = <TType>(type) => {
   const typeString = "[object " + type + "]";
-  return function(value): value is TType {
+  return function (value): value is TType {
     return getClassName(value) === typeString;
   };
 };
 
-const getClassName = value => Object.prototype.toString.call(value);
+const getClassName = (value) => Object.prototype.toString.call(value);
 
 export const comparable = (value: any) => {
   if (value instanceof Date) {
@@ -27,7 +27,7 @@ export const coercePotentiallyNull = (value: any) =>
 export const isArray = typeChecker<Array<any>>("Array");
 export const isObject = typeChecker<Object>("Object");
 export const isFunction = typeChecker<Function>("Function");
-export const isVanillaObject = value => {
+export const isVanillaObject = (value) => {
   return (
     value &&
     (value.constructor === Object ||
