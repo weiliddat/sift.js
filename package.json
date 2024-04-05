@@ -1,5 +1,5 @@
 {
-  "name": "sift",
+  "name": "@weiliddat/sift",
   "description": "MongoDB query filtering in JavaScript",
   "version": "18.0.0",
   "repository": "weiliddat/sift.js",
