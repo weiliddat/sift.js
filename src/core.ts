@@ -13,7 +13,7 @@ export interface Operation<TItem> {
   readonly done: boolean;
   propop: boolean;
   reset();
-  next(item: TItem, key?: Key, owner?: any, root?: boolean);
+  next(item: TItem, key?: Key, owner?: any, root?: boolean, leaf?: boolean);
 }
 
 export type Tester = (
@@ -21,6 +21,7 @@ export type Tester = (
   key?: Key,
   owner?: any,
   root?: boolean,
+  leaf?: boolean,
 ) => boolean;
 
 export interface NamedOperation {
@@ -109,7 +110,7 @@ const walkKeyPathValues = (
   }
 
   if (depth === keyPath.length || item == null) {
-    return next(item, key, owner, depth === 0);
+    return next(item, key, owner, depth === 0, depth === keyPath.length);
   }
 
   return walkKeyPathValues(
@@ -141,7 +142,13 @@ export abstract class BaseOperation<TParams, TItem = any>
     this.done = false;
     this.keep = false;
   }
-  abstract next(item: any, key: Key, parent: any, root: boolean);
+  abstract next(
+    item: any,
+    key: Key,
+    parent: any,
+    root: boolean,
+    leaf?: boolean,
+  );
 }
 
 abstract class GroupOperation extends BaseOperation<any> {
@@ -173,13 +180,19 @@ abstract class GroupOperation extends BaseOperation<any> {
   /**
    */
 
-  protected childrenNext(item: any, key: Key, owner: any, root: boolean) {
+  protected childrenNext(
+    item: any,
+    key: Key,
+    owner: any,
+    root: boolean,
+    leaf?: boolean,
+  ) {
     let done = true;
     let keep = true;
     for (let i = 0, { length } = this.children; i < length; i++) {
       const childOperation = this.children[i];
       if (!childOperation.done) {
-        childOperation.next(item, key, owner, root);
+        childOperation.next(item, key, owner, root, leaf);
       }
       if (!childOperation.keep) {
         keep = false;
@@ -256,8 +269,9 @@ export class NestedOperation extends GroupOperation {
     key: Key,
     owner: any,
     root: boolean,
+    leaf: boolean,
   ) => {
-    this.childrenNext(value, key, owner, root);
+    this.childrenNext(value, key, owner, root, leaf);
     return !this.done;
   };
 }
