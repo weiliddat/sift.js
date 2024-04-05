@@ -1,3 +1,7 @@
+## 18.0.1
+
+- Fix $in and $nin operators not accepting primitives like Mongo
+
 ## 18.0.0
 
 - Fix https://github.com/crcn/sift.js/issues/263

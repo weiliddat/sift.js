@@ -22,11 +22,6 @@
     "pretty-quick": "^4.0.0",
     "typescript": "^5.4.4"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged"
-    }
-  },
   "scripts": {
     "clean": "rm -rf lib",
     "prebuild": "npm run clean",
@@ -35,7 +30,8 @@
     "test": "npm run test:spec && npm run test:types",
     "test:spec": "mocha ./test -R spec",
     "test:types": "cd test && tsc types.ts --noEmit",
-    "prepublishOnly": "npm run build && npm run test"
+    "prepublishOnly": "npm run build && npm run test",
+    "prepare": "husky"
   },
   "files": [
     "lib",
