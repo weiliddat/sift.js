@@ -1,5 +1,5 @@
 const assert = require("assert");
-var ObjectID = require("bson").ObjectID;
+const { ObjectId } = require("bson");
 const MongoClient = require("mongodb").MongoClient;
 const { promisify } = require("util");
 const {
@@ -74,9 +74,9 @@ describe(__filename + "#", function () {
     ],
 
     [
-      new ObjectID("54dd5546b1d296a54d152e84"),
-      [new ObjectID(), new ObjectID("54dd5546b1d296a54d152e84")],
-      [new ObjectID("54dd5546b1d296a54d152e84")],
+      new ObjectId("54dd5546b1d296a54d152e84"),
+      [new ObjectId(), new ObjectId("54dd5546b1d296a54d152e84")],
+      [new ObjectId("54dd5546b1d296a54d152e84")],
       false,
     ],
 
@@ -806,7 +806,7 @@ describe(__filename + "#", function () {
       // out of the box
       assert.equal(
         JSON.stringify(array.filter(sift(filter))),
-        JSON.stringify(matchArray),
+        JSON.stringify(matchArray)
       );
 
       // custom
@@ -815,7 +815,7 @@ describe(__filename + "#", function () {
       });
       assert.equal(
         JSON.stringify(array.filter(tester)),
-        JSON.stringify(matchArray),
+        JSON.stringify(matchArray)
       );
 
       if (process.env.VALIDATE_WITH_MONGODB && testWithMongo !== false) {
@@ -848,9 +848,9 @@ async function testNativeQuery(filter, array, matchArray) {
         const copy = { ...result };
         delete copy._id;
         return copy;
-      }),
+      })
     ),
-    JSON.stringify(matchArray),
+    JSON.stringify(matchArray)
   );
 
   await promisify(db.dropDatabase.bind(db))();

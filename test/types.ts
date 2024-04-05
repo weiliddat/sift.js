@@ -245,7 +245,7 @@ createQueryTester({ $eq: 5 }, { operations: { $eq, $in } });
 ); // ["frank"]
 [{ name: "frank" }, { name: "joe" }].filter(
   sift({
-    $where: function () {
+    $where: function (this: any) {
       return this.name === "frank";
     },
   }),
@@ -292,7 +292,7 @@ var result = bills.filter(
 
 [{ name: "frank" }, { name: "joe", last: "bob" }].filter(
   sift({
-    $where: function () {
+    $where: function (this: any) {
       return this.name === "frank" || this.last === "bob";
     },
   }),

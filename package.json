@@ -3,43 +3,34 @@
   "description": "MongoDB query filtering in JavaScript",
   "version": "18.0.0",
   "repository": "weiliddat/sift.js",
-  "sideEffects": false,
   "author": {
     "name": "Chiawei Ong",
     "email": "chiawei.ong@parcellab.com"
   },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
-  "engines": {},
-  "typings": "./index.d.ts",
+  "engines": {
+    "node": ">= 18"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.29",
+    "husky": "^9.0.11",
+    "mocha": "^10.4.0",
+    "mongodb": "^6.5.0",
+    "prettier": "^3.2.5",
+    "pretty-quick": "^4.0.0",
+    "typescript": "^5.4.4"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
   },
-  "devDependencies": {
-    "@rollup/plugin-replace": "^2.3.2",
-    "@rollup/plugin-typescript": "8.2.1",
-    "@types/node": "^13.7.0",
-    "bson": "^4.0.3",
-    "eval": "^0.1.4",
-    "husky": "^1.2.1",
-    "mocha": "8.3.2",
-    "mongodb": "^3.6.6",
-    "prettier": "^3.2.5",
-    "pretty-quick": "^4.0.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.7.2",
-    "rollup-plugin-terser": "^7.0.2",
-    "tslib": "2.2.0",
-    "typescript": "4.2.4"
-  },
-  "main": "./index.js",
-  "module": "./es5m/index.js",
-  "es2015": "./es/index.js",
   "scripts": {
-    "clean": "rimraf lib es5m es",
-    "prebuild": "npm run clean && npm run build:types",
-    "build": "rollup -c",
+    "clean": "rm -rf lib",
+    "prebuild": "npm run clean",
+    "build": "tsc",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --outDir lib",
     "test": "npm run test:spec && npm run test:types",
     "test:spec": "mocha ./test -R spec",
@@ -47,15 +38,10 @@
     "prepublishOnly": "npm run build && npm run test"
   },
   "files": [
-    "es",
-    "es5m",
     "lib",
     "src",
-    "*.d.ts",
-    "*.js.map",
-    "index.js",
-    "sift.csp.min.js",
-    "sift.min.js",
-    "MIT-LICENSE.txt"
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
   ]
 }
