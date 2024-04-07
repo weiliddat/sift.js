@@ -118,8 +118,8 @@ describe("compileFilter", function () {
         const mongoExpected = await collection
           .find(testCase.filter, { projection: { _id: 0 } })
           .toArray();
-        deepStrictEqual(actual, mongoExpected);
 
+        deepStrictEqual(actual, mongoExpected);
         deepStrictEqual(actual, testCase.expected);
       });
     }
@@ -219,9 +219,77 @@ describe("compileFilter", function () {
 
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i];
-      test(i.toString(), function () {
+      test(i.toString(), async function () {
         const filterFn = compileFilter(testCase.filter);
         const actual = testCase.input.filter(filterFn);
+
+        await collection.insertMany(testCase.input);
+        const mongoExpected = await collection
+          .find(testCase.filter, { projection: { _id: 0 } })
+          .toArray();
+
+        deepStrictEqual(actual, mongoExpected);
+        deepStrictEqual(actual, testCase.expected);
+      });
+    }
+  });
+
+  describe("$ne operator", function () {
+    const testCases = [
+      {
+        filter: { foo: { $ne: "bar" } },
+        input: [{ foo: "bar" }, {}, { foo: "baz" }, { foo: { foo: "bar" } }],
+        expected: [{}, { foo: "baz" }, { foo: { foo: "bar" } }],
+      },
+      {
+        filter: { "foo.foo": { $ne: "bar" } },
+        input: [{ foo: "bar" }, {}, { foo: "baz" }, { foo: { foo: "bar" } }],
+        expected: [{ foo: "bar" }, {}, { foo: "baz" }],
+      },
+      {
+        filter: { "foo.foo": { $ne: null } },
+        input: [
+          { foo: "bar" },
+          {},
+          { foo: { foo: "bar" } },
+          { foo: null },
+          { foo: {} },
+          { foo: { foo: null } },
+        ],
+        expected: [{ foo: { foo: "bar" } }],
+      },
+      {
+        filter: { foo: { $ne: { foo: "bar" } } },
+        input: [
+          { foo: "bar" },
+          {},
+          { foo: { foo: "bar" } },
+          { foo: null },
+          { foo: {} },
+          { foo: { foo: null } },
+        ],
+        expected: [
+          { foo: "bar" },
+          {},
+          { foo: null },
+          { foo: {} },
+          { foo: { foo: null } },
+        ],
+      },
+    ];
+
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i];
+      test(i.toString(), async function () {
+        const filterFn = compileFilter(testCase.filter);
+        const actual = testCase.input.filter(filterFn);
+
+        await collection.insertMany(testCase.input);
+        const mongoExpected = await collection
+          .find(testCase.filter, { projection: { _id: 0 } })
+          .toArray();
+
+        deepStrictEqual(actual, mongoExpected);
         deepStrictEqual(actual, testCase.expected);
       });
     }

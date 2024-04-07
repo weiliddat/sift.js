@@ -33,31 +33,55 @@ export function compileFilter(filter: Record<string, any>): Check {
   return new Function("doc", wrapped) as Check;
 }
 
-function parseToFnString(filter: Record<string, any>, prefix = ""): string {
+enum Mode {
+  Eq,
+  Ne,
+}
+
+function parseToFnString(
+  filter: Record<string, any>,
+  prefix = "",
+  mode = Mode.Eq,
+): string {
   let str = "";
 
   for (const k in filter) {
     const v = filter[k];
 
-    const predot = prefix ? `${prefix}?.` : "";
-    const safeKeys = predot + k.replace(/\./g, "?.");
+    const safePrefix = prefix ? prefix.replace(/\./g, "?.") : "";
+    const safeKeys = (prefix ? safePrefix + "?." : "") + k.replace(/\./g, "?.");
 
     if (operators.has(k)) {
       if (k === "$eq") {
         str += parseToFnString({ [prefix]: v });
       }
+      if (k === "$ne") {
+        str += parseToFnString({ [prefix]: v }, "", Mode.Ne);
+      }
     } else if (typeof v === "function") {
       console.error("Unsupported function");
     } else if (typeof v !== "object") {
-      str += `if (doc?.${safeKeys} !== ${stringify(v)}) { return false; } `;
+      if (mode === Mode.Eq) {
+        str += `if (doc?.${safeKeys} !== ${stringify(v)}) { return false; } `;
+      } else {
+        str += `if (doc?.${safeKeys} === ${stringify(v)}) { return false; } `;
+      }
     } else if (v == null) {
-      str += `if (doc?.${safeKeys} != null) { return false; } `;
+      if (mode === Mode.Eq) {
+        str += `if (doc?.${safeKeys} != null) { return false; } `;
+      } else {
+        str += `if (doc?.${safeKeys} == null) { return false; } `;
+      }
     } else if (typeof v === "object") {
       const hasOperators = Object.keys(v).some((k) => operators.has(k));
       if (hasOperators) {
         str += parseToFnString(v, k);
       } else {
-        str += `if (JSON.stringify(doc?.${safeKeys}) !== ${stringify(JSON.stringify(v))}) { return false; } `;
+        if (mode === Mode.Eq) {
+          str += `if (JSON.stringify(doc?.${safeKeys}) !== ${stringify(JSON.stringify(v))}) { return false; } `;
+        } else {
+          str += `if (JSON.stringify(doc?.${safeKeys}) === ${stringify(JSON.stringify(v))}) { return false; } `;
+        }
       }
     }
   }
