@@ -324,6 +324,69 @@ describe(__filename + "#", function () {
       let sifted3 = objects.filter(sift(q3));
       assert.deepEqual(sifted3, objects);
     });
+
+    it("$eq for proxied array of objects", function () {
+      const createProxy = (array) =>
+        new Proxy(array, {
+          get(target, prop, receiver) {
+            if (Array.isArray(target) && prop === "@firstId") {
+              return target.at(0)?.id;
+            }
+            if (Array.isArray(target) && prop === "@lastId") {
+              return target.at(-1)?.id;
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+          has(target, prop) {
+            if (Array.isArray(target) && prop === "@firstId") {
+              return target.at(0)?.id !== undefined;
+            }
+            if (Array.isArray(target) && prop === "@lastId") {
+              return target.at(-1)?.id !== undefined;
+            }
+            return Reflect.has(target, prop);
+          },
+          ownKeys(target) {
+            if (Array.isArray(target)) {
+              return Reflect.ownKeys(target).concat(["@firstId", "@lastId"]);
+            }
+            return Reflect.ownKeys(target);
+          },
+          getOwnPropertyDescriptor(target, prop) {
+            if (
+              Array.isArray(target) &&
+              (prop === "@firstId" || prop === "@lastId")
+            ) {
+              return {
+                configurable: true,
+                enumerable: true,
+              };
+            }
+            return Reflect.getOwnPropertyDescriptor(target, prop);
+          },
+        });
+
+      let objects = [
+        {
+          things: createProxy([{ id: 123 }, { id: 456 }]),
+        },
+        {
+          things: createProxy([{ id: 123 }, { id: 789 }]),
+        },
+      ];
+
+      let q = {
+        "things.@firstId": 123,
+      };
+      let sifted = objects.filter(sift(q));
+      assert.deepEqual(sifted, objects);
+
+      let q2 = {
+        "things.@lastId": 789,
+      };
+      let sifted2 = objects.filter(sift(q2));
+      assert.deepEqual(sifted2, [objects[1]]);
+    });
   });
 
   describe("$where", function () {
