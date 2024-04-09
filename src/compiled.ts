@@ -28,7 +28,7 @@ export function compileFilter(filter: Record<string, any>): Check {
 
   console.log(fn);
 
-  const wrapped = "try {" + fn + " } catch { return false; } return true;";
+  const wrapped = "try {" + fn + " } catch { return false; } return false;";
 
   return new Function("doc", wrapped) as Check;
 }
@@ -62,15 +62,15 @@ function parseToFnString(
       console.error("Unsupported function");
     } else if (typeof v !== "object") {
       if (mode === Mode.Eq) {
-        str += `if (doc?.${safeKeys} !== ${stringify(v)}) { return false; } `;
+        str += `if (doc?.${safeKeys} === ${stringify(v)}) { return true; } `;
       } else {
-        str += `if (doc?.${safeKeys} === ${stringify(v)}) { return false; } `;
+        str += `if (doc?.${safeKeys} !== ${stringify(v)}) { return true; } `;
       }
     } else if (v == null) {
       if (mode === Mode.Eq) {
-        str += `if (doc?.${safeKeys} != null) { return false; } `;
+        str += `if (doc?.${safeKeys} == null) { return true; } `;
       } else {
-        str += `if (doc?.${safeKeys} == null) { return false; } `;
+        str += `if (doc?.${safeKeys} != null) { return true; } `;
       }
     } else if (typeof v === "object") {
       const hasOperators = Object.keys(v).some((k) => operators.has(k));
@@ -78,9 +78,9 @@ function parseToFnString(
         str += parseToFnString(v, k);
       } else {
         if (mode === Mode.Eq) {
-          str += `if (JSON.stringify(doc?.${safeKeys}) !== ${stringify(JSON.stringify(v))}) { return false; } `;
+          str += `if (JSON.stringify(doc?.${safeKeys}) === ${stringify(JSON.stringify(v))}) { return true; } `;
         } else {
-          str += `if (JSON.stringify(doc?.${safeKeys}) === ${stringify(JSON.stringify(v))}) { return false; } `;
+          str += `if (JSON.stringify(doc?.${safeKeys}) !== ${stringify(JSON.stringify(v))}) { return true; } `;
         }
       }
     }
