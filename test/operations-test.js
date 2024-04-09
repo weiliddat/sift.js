@@ -214,6 +214,17 @@ describe(__filename + "#", function () {
       [{ groups: [1, 2, 3, 4] }, { groups: [7, 8] }],
       [{ groups: [7, 8] }],
     ],
+    [
+      { groups: { $gt: { a: "b" } } },
+      [
+        { groups: null },
+        { groups: { a: "b" } },
+        { groups: { a: "c" } },
+        { groups: { a: "b", c: "d" } },
+        { groups: { c: "d" } },
+      ],
+      [], // can't compare objects
+    ],
 
     // $gte
     [{ $gte: 5 }, [3, 4, 5, 6], [5, 6], false],
@@ -810,7 +821,7 @@ describe(__filename + "#", function () {
       // out of the box
       assert.equal(
         JSON.stringify(array.filter(sift(filter))),
-        JSON.stringify(matchArray)
+        JSON.stringify(matchArray),
       );
 
       // custom
@@ -819,7 +830,7 @@ describe(__filename + "#", function () {
       });
       assert.equal(
         JSON.stringify(array.filter(tester)),
-        JSON.stringify(matchArray)
+        JSON.stringify(matchArray),
       );
 
       if (process.env.VALIDATE_WITH_MONGODB && testWithMongo !== false) {
@@ -852,9 +863,9 @@ async function testNativeQuery(filter, array, matchArray) {
         const copy = { ...result };
         delete copy._id;
         return copy;
-      })
+      }),
     ),
-    JSON.stringify(matchArray)
+    JSON.stringify(matchArray),
   );
 
   await promisify(db.dropDatabase.bind(db))();
