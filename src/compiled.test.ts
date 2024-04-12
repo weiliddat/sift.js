@@ -113,6 +113,38 @@ describe("compileFilter", function () {
         ],
         expected: [{ foo: { bar: null } }],
       },
+      {
+        filter: { foo: [1, 2] },
+        input: [
+          { foo: [1, 2] },
+          {
+            foo: [
+              [1, 2],
+              [2, 3],
+            ],
+          },
+          { foo: [2, 1] },
+          {
+            foo: [
+              [2, 1],
+              [2, 3],
+            ],
+          },
+          {},
+          { foo: [] },
+          { foo: 1 },
+          { foo: null },
+        ],
+        expected: [
+          { foo: [1, 2] },
+          {
+            foo: [
+              [1, 2],
+              [2, 3],
+            ],
+          },
+        ],
+      },
     ];
 
     for (let i = 0; i < testCases.length; i++) {

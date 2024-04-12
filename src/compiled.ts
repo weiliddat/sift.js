@@ -89,6 +89,9 @@ function parseToFnString(
         str += parseToFnString(v, k);
       } else {
         if (mode === Mode.Eq) {
+          if (Array.isArray(v)) {
+            str += `if (Array.isArray(doc?.${safeKeys}) && doc?.${safeKeys}.find((d) => JSON.stringify(d) === ${stringify(JSON.stringify(v))})) { return true; } `;
+          }
           str += `if (JSON.stringify(doc?.${safeKeys}) === ${stringify(JSON.stringify(v))}) { return true; } `;
         }
         if (mode === Mode.Ne) {
