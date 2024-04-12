@@ -66,6 +66,7 @@ function parseToFnString(
       console.error("Unsupported function");
     } else if (typeof v !== "object") {
       if (mode === Mode.Eq) {
+        str += `if (Array.isArray(doc?.${safeKeys}) && doc?.${safeKeys}.includes(${stringify(v)})) { return true; } `;
         str += `if (doc?.${safeKeys} === ${stringify(v)}) { return true; } `;
       }
       if (mode === Mode.Ne) {

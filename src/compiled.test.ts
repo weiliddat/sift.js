@@ -34,8 +34,15 @@ describe("compileFilter", function () {
     const testCases = [
       {
         filter: { foo: "bar" },
-        input: [{ foo: "bar" }, {}, { foo: "baz" }, { foo: { foo: "bar" } }],
-        expected: [{ foo: "bar" }],
+        input: [
+          { foo: "bar" },
+          {},
+          { foo: "baz" },
+          { foo: { foo: "bar" } },
+          { foo: ["bar", "baz"] },
+          { foo: ["baz"] },
+        ],
+        expected: [{ foo: "bar" }, { foo: ["bar", "baz"] }],
       },
       {
         filter: { "foo.bar": "baz" },
