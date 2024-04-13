@@ -6,6 +6,7 @@ const operators = new Set([
 
   "$gte",
   "$lte",
+
   "$in",
   "$nin",
   "$exists",
@@ -39,6 +40,8 @@ enum Mode {
   Ne,
   Gt,
   Lt,
+  Gte,
+  Lte,
 }
 
 function parseToFnString(
@@ -72,6 +75,9 @@ function parseToFnString(
       if (fk === "$lt") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Lt);
       }
+      if (fk === "$gte") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Gte);
+      }
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
     } else if (typeof fv !== "object") {
@@ -95,8 +101,14 @@ function parseToFnString(
         str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv < ${fvs})) { return true; } `;
         str += `if (${dp} < ${fvs}) { return true; } `;
       }
+      if (mode === Mode.Gte) {
+        str += `if (${dp} == null) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv >= ${fvs})) { return true; } `;
+        str += `if (${dp} >= ${fvs}) { return true; } `;
+      }
     } else if (fv == null) {
-      if (mode === Mode.Eq) {
+      if (mode === Mode.Eq || mode === Mode.Gte) {
         str += `if (${dp} == null) { return true; } `;
       }
       if (mode === Mode.Ne) {
