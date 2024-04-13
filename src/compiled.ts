@@ -74,20 +74,25 @@ function parseToFnString(
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
     } else if (typeof fv !== "object") {
+      const fvs = stringify(fv);
       if (mode === Mode.Eq) {
-        str += `if (Array.isArray(${dp}) && ${dp}.includes(${stringify(fv)})) { return true; } `;
-        str += `if (${dp} === ${stringify(fv)}) { return true; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.includes(${fvs})) { return true; } `;
+        str += `if (${dp} === ${fvs}) { return true; } `;
       }
       if (mode === Mode.Ne) {
-        str += `if (${dp} !== ${stringify(fv)}) { return true; } `;
+        str += `if (${dp} !== ${fvs}) { return true; } `;
       }
       if (mode === Mode.Gt) {
-        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv > ${stringify(fv)})) { return true; } `;
-        str += `if (${dp} > ${stringify(fv)}) { return true; } `;
+        str += `if (${dp} == null) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv > ${fvs})) { return true; } `;
+        str += `if (${dp} > ${fvs}) { return true; } `;
       }
       if (mode === Mode.Lt) {
-        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv < ${stringify(fv)})) { return true; } `;
-        str += `if (${dp} < ${stringify(fv)}) { return true; } `;
+        str += `if (${dp} == null) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv < ${fvs})) { return true; } `;
+        str += `if (${dp} < ${fvs}) { return true; } `;
       }
     } else if (fv == null) {
       if (mode === Mode.Eq) {
@@ -103,13 +108,15 @@ function parseToFnString(
         str += parseToFnString(fv, fk);
       } else {
         if (mode === Mode.Eq) {
+          const fvs = stringify(JSON.stringify(fv));
           if (Array.isArray(fv)) {
-            str += `if (Array.isArray(${dp}) && ${dp}.find((d) => JSON.stringify(d) === ${stringify(JSON.stringify(fv))})) { return true; } `;
+            str += `if (Array.isArray(${dp}) && ${dp}.find((d) => JSON.stringify(d) === ${fvs})) { return true; } `;
           }
-          str += `if (JSON.stringify(${dp}) === ${stringify(JSON.stringify(fv))}) { return true; } `;
+          str += `if (JSON.stringify(${dp}) === ${fvs}) { return true; } `;
         }
         if (mode === Mode.Ne) {
-          str += `if (JSON.stringify(${dp}) !== ${stringify(JSON.stringify(fv))}) { return true; } `;
+          const fvs = stringify(JSON.stringify(fv));
+          str += `if (JSON.stringify(${dp}) !== ${fvs}) { return true; } `;
         }
       }
     }

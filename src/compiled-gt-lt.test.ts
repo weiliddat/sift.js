@@ -49,6 +49,19 @@ describe("compileFilter", function () {
         expected: [{ foo: 2 }, { foo: [2] }, { foo: [0, 2] }],
       },
       {
+        filter: { foo: { $gt: -1 } },
+        input: [
+          { foo: 0 },
+          { foo: { foo: "bar" } },
+          {},
+          { foo: null },
+          { foo: [1] },
+          { foo: [-2, 2] },
+          { foo: [] },
+        ],
+        expected: [{ foo: 0 }, { foo: [1] }, { foo: [-2, 2] }],
+      },
+      {
         filter: { "foo.foo": { $gt: 1 } },
         input: [
           { foo: { foo: 0 } },
@@ -138,7 +151,21 @@ describe("compileFilter", function () {
           { foo: [0, 2] },
           { foo: [] },
         ],
-        expected: [{ foo: 2 }, { foo: [2] }, { foo: [0, 2] }],
+        expected: [{ foo: 0 }, { foo: [0, 2] }],
+      },
+      {
+        filter: { foo: { $lt: -1 } },
+        input: [
+          { foo: -2 },
+          { foo: { foo: "bar" } },
+          {},
+          { foo: null },
+          { foo: [1] },
+          { foo: [-2] },
+          { foo: [-2, 2] },
+          { foo: [] },
+        ],
+        expected: [{ foo: -2 }, { foo: [-2] }, { foo: [-2, 2] }],
       },
       {
         filter: { "foo.foo": { $lt: 1 } },
@@ -156,11 +183,7 @@ describe("compileFilter", function () {
           { foo: { foo: [0, 2] } },
           { foo: { foo: [] } },
         ],
-        expected: [
-          { foo: { foo: 2 } },
-          { foo: { foo: [2] } },
-          { foo: { foo: [0, 2] } },
-        ],
+        expected: [{ foo: { foo: 0 } }, { foo: { foo: [0, 2] } }],
       },
       {
         filter: { "foo.foo": { $lt: null } },
