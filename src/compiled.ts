@@ -37,6 +37,7 @@ enum Mode {
   Eq,
   Ne,
   Gt,
+  Lt,
 }
 
 function parseToFnString(
@@ -67,6 +68,9 @@ function parseToFnString(
       if (fk === "$gt") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Gt);
       }
+      if (fk === "$lt") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Lt);
+      }
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
     } else if (typeof fv !== "object") {
@@ -80,6 +84,10 @@ function parseToFnString(
       if (mode === Mode.Gt) {
         str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv > ${stringify(fv)})) { return true; } `;
         str += `if (${dp} > ${stringify(fv)}) { return true; } `;
+      }
+      if (mode === Mode.Lt) {
+        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv < ${stringify(fv)})) { return true; } `;
+        str += `if (${dp} < ${stringify(fv)}) { return true; } `;
       }
     } else if (fv == null) {
       if (mode === Mode.Eq) {
