@@ -1,13 +1,14 @@
 const operators = new Set([
   "$eq",
   "$ne",
+  "$gt",
+  "$lt",
+
+  "$gte",
+  "$lte",
   "$in",
   "$nin",
   "$exists",
-  "$gte",
-  "$gt",
-  "$lte",
-  "$lt",
   "$mod",
   "$all",
   "$and",
