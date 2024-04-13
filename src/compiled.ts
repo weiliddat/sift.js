@@ -78,6 +78,9 @@ function parseToFnString(
       if (fk === "$gte") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Gte);
       }
+      if (fk === "$lte") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Lte);
+      }
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
     } else if (typeof fv !== "object") {
@@ -107,8 +110,14 @@ function parseToFnString(
         str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv >= ${fvs})) { return true; } `;
         str += `if (${dp} >= ${fvs}) { return true; } `;
       }
+      if (mode === Mode.Lte) {
+        str += `if (${dp} == null) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv <= ${fvs})) { return true; } `;
+        str += `if (${dp} <= ${fvs}) { return true; } `;
+      }
     } else if (fv == null) {
-      if (mode === Mode.Eq || mode === Mode.Gte) {
+      if (mode === Mode.Eq || mode === Mode.Gte || mode === Mode.Lte) {
         str += `if (${dp} == null) { return true; } `;
       }
       if (mode === Mode.Ne) {

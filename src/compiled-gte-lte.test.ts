@@ -150,10 +150,10 @@ describe("compileFilter", function () {
     }
   });
 
-  describe.skip("$lt operator", function () {
+  describe("$lte operator", function () {
     const testCases = [
       {
-        filter: { foo: { $lt: 1 } },
+        filter: { foo: { $lte: 1 } },
         input: [
           { foo: 0 },
           { foo: 1 },
@@ -166,10 +166,10 @@ describe("compileFilter", function () {
           { foo: [0, 2] },
           { foo: [] },
         ],
-        expected: [{ foo: 0 }, { foo: [0, 2] }],
+        expected: [{ foo: 0 }, { foo: 1 }, { foo: [1] }, { foo: [0, 2] }],
       },
       {
-        filter: { foo: { $lt: -1 } },
+        filter: { foo: { $lte: -1 } },
         input: [
           { foo: -2 },
           { foo: { foo: "bar" } },
@@ -183,7 +183,7 @@ describe("compileFilter", function () {
         expected: [{ foo: -2 }, { foo: [-2] }, { foo: [-2, 2] }],
       },
       {
-        filter: { "foo.foo": { $lt: 1 } },
+        filter: { "foo.foo": { $lte: 1 } },
         input: [
           { foo: { foo: 0 } },
           { foo: { foo: 1 } },
@@ -198,10 +198,15 @@ describe("compileFilter", function () {
           { foo: { foo: [0, 2] } },
           { foo: { foo: [] } },
         ],
-        expected: [{ foo: { foo: 0 } }, { foo: { foo: [0, 2] } }],
+        expected: [
+          { foo: { foo: 0 } },
+          { foo: { foo: 1 } },
+          { foo: { foo: [1] } },
+          { foo: { foo: [0, 2] } },
+        ],
       },
       {
-        filter: { "foo.foo": { $lt: null } },
+        filter: { "foo.foo": { $lte: null } },
         input: [
           { foo: "bar" },
           {},
@@ -212,13 +217,19 @@ describe("compileFilter", function () {
           { foo: { foo: [] } },
           { foo: { foo: [1] } },
         ],
-        expected: [],
+        expected: [
+          { foo: "bar" },
+          {},
+          { foo: null },
+          { foo: {} },
+          { foo: { foo: null } },
+        ],
       },
       {
         // cannot yet compare objects, like in OG sift
         // https://www.mongodb.com/docs/manual/reference/bson-type-comparison-order/#objects
         skip: true,
-        filter: { foo: { $lt: { foo: "bar" } } },
+        filter: { foo: { $lte: { foo: "bar" } } },
         input: [
           { foo: "bar" },
           {},
