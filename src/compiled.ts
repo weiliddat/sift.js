@@ -1,4 +1,6 @@
 const operators = new Set([
+  "$eq",
+  "$ne",
   "$in",
   "$nin",
   "$exists",
@@ -6,8 +8,6 @@ const operators = new Set([
   "$gt",
   "$lte",
   "$lt",
-  "$eq",
-  "$ne",
   "$mod",
   "$all",
   "$and",
@@ -44,58 +44,64 @@ function parseToFnString(
   prefix = "",
   mode = Mode.Eq,
 ): string {
+  /** fn string */
   let str = "";
 
-  for (const k in filter) {
-    const v = filter[k];
+  for (const /** filter key */ fk in filter) {
+    /** filter value */
+    const fv = filter[fk];
 
-    const safePrefix = prefix ? prefix.replace(/\./g, "?.") : "";
-    const safeKeys = (prefix ? safePrefix + "?." : "") + k.replace(/\./g, "?.");
+    /** document path with optional chains */
+    const dp = (prefix ? `doc.${prefix}.${fk}` : `doc.${fk}`).replace(
+      /\./g,
+      "?.",
+    );
 
-    if (operators.has(k)) {
-      if (k === "$eq") {
-        str += parseToFnString({ [prefix]: v });
+    if (operators.has(fk)) {
+      if (fk === "$eq") {
+        str += parseToFnString({ [prefix]: fv });
       }
-      if (k === "$ne") {
-        str += parseToFnString({ [prefix]: v }, "", Mode.Ne);
+      if (fk === "$ne") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Ne);
       }
-      if (k === "$gt") {
-        str += parseToFnString({ [prefix]: v }, "", Mode.Gt);
+      if (fk === "$gt") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Gt);
       }
-    } else if (typeof v === "function") {
+    } else if (typeof fv === "function") {
       console.error("Unsupported function");
-    } else if (typeof v !== "object") {
+    } else if (typeof fv !== "object") {
       if (mode === Mode.Eq) {
-        str += `if (Array.isArray(doc?.${safeKeys}) && doc?.${safeKeys}.includes(${stringify(v)})) { return true; } `;
-        str += `if (doc?.${safeKeys} === ${stringify(v)}) { return true; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.includes(${stringify(fv)})) { return true; } `;
+        str += `if (${dp} === ${stringify(fv)}) { return true; } `;
       }
       if (mode === Mode.Ne) {
-        str += `if (doc?.${safeKeys} !== ${stringify(v)}) { return true; } `;
+        str += `if (${dp} !== ${stringify(fv)}) { return true; } `;
       }
       if (mode === Mode.Gt) {
-        str += `if (doc?.${safeKeys} > ${stringify(v)}) { return true; } `;
+        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv > ${stringify(fv)})) { return true; } `;
+        str += `if (${dp} > ${stringify(fv)}) { return true; } `;
       }
-    } else if (v == null) {
+    } else if (fv == null) {
       if (mode === Mode.Eq) {
-        str += `if (doc?.${safeKeys} == null) { return true; } `;
+        str += `if (${dp} == null) { return true; } `;
       }
       if (mode === Mode.Ne) {
-        str += `if (doc?.${safeKeys} != null) { return true; } `;
+        str += `if (${dp} != null) { return true; } `;
       }
-    } else if (typeof v === "object") {
-      const hasOperators = Object.keys(v).some((k) => operators.has(k));
+    } else if (typeof fv === "object") {
+      const hasOperators = Object.keys(fv).some((k) => operators.has(k));
 
       if (hasOperators) {
-        str += parseToFnString(v, k);
+        str += parseToFnString(fv, fk);
       } else {
         if (mode === Mode.Eq) {
-          if (Array.isArray(v)) {
-            str += `if (Array.isArray(doc?.${safeKeys}) && doc?.${safeKeys}.find((d) => JSON.stringify(d) === ${stringify(JSON.stringify(v))})) { return true; } `;
+          if (Array.isArray(fv)) {
+            str += `if (Array.isArray(${dp}) && ${dp}.find((d) => JSON.stringify(d) === ${stringify(JSON.stringify(fv))})) { return true; } `;
           }
-          str += `if (JSON.stringify(doc?.${safeKeys}) === ${stringify(JSON.stringify(v))}) { return true; } `;
+          str += `if (JSON.stringify(${dp}) === ${stringify(JSON.stringify(fv))}) { return true; } `;
         }
         if (mode === Mode.Ne) {
-          str += `if (JSON.stringify(doc?.${safeKeys}) !== ${stringify(JSON.stringify(v))}) { return true; } `;
+          str += `if (JSON.stringify(${dp}) !== ${stringify(JSON.stringify(fv))}) { return true; } `;
         }
       }
     }
