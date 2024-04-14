@@ -102,9 +102,6 @@ function parseToFnString(
       }
       if (fk === "$and") {
         if (Array.isArray(fv)) {
-          console.log("$and");
-          console.log({ prefix, fk, fv, dp });
-
           const cmpFns = [];
           for (const av of fv) {
             const cmpSym = nextSym();
