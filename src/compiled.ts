@@ -60,9 +60,14 @@ function parseToFnString(
   /** fn string */
   let str = "";
 
+  const cmpFns = [];
   for (const /** filter key */ fk in filter) {
     /** filter value */
     const fv = filter[fk];
+
+    const cmpSym = nextSym();
+    cmpFns.push(cmpSym);
+    str += `function ${cmpSym} () {`;
 
     /** document path with optional chains */
     const dp = (prefix ? `doc.${prefix}.${fk}` : `doc.${fk}`).replace(
@@ -202,7 +207,13 @@ function parseToFnString(
         }
       }
     }
+
+    str += `} `;
   }
+
+  const andCnd = cmpFns.map((sym) => `${sym}()`).join(" && ");
+  str += `if (${andCnd}) { return true; } `;
+
   return str;
 }
 
