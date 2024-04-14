@@ -1,25 +1,28 @@
-const operators = new Set([
+const cmpOps = new Set([
   "$eq",
-  "$ne",
   "$gt",
-  "$lt",
   "$gte",
-  "$lte",
   "$in",
-
+  "$lt",
+  "$lte",
+  "$ne",
   "$nin",
-  "$and",
-  "$or",
-  "$all",
-  "$nor",
-  "$not",
-  "$exists",
-  "$mod",
-  "$size",
-  "$type",
-  "$regex",
-  "$where",
-  "$elemMatch",
+]);
+
+const logOps = new Set(["$and", "$not", "$nor", "$or"]);
+
+const elmOps = new Set(["$exists", "$type"]);
+
+const evlOps = new Set(["$mod", "$regex", "$where"]);
+
+const arrOps = new Set(["$all", "$elemMatch", "$size"]);
+
+const allOps = new Set([
+  ...cmpOps.values(),
+  ...logOps.values(),
+  ...elmOps.values(),
+  ...evlOps.values(),
+  ...arrOps.values(),
 ]);
 
 type Check = (doc: any) => Boolean;
@@ -43,7 +46,11 @@ enum Mode {
   Lte,
   In,
   Nin,
+  And,
 }
+
+let symbolCount = 1;
+const nextSym = () => `sym_${symbolCount++}`;
 
 function parseToFnString(
   filter: Record<string, any>,
@@ -63,7 +70,7 @@ function parseToFnString(
       "?.",
     );
 
-    if (operators.has(fk)) {
+    if (allOps.has(fk)) {
       if (fk === "$eq") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Eq);
       }
@@ -87,6 +94,26 @@ function parseToFnString(
       }
       if (fk === "$nin") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Nin);
+      }
+      if (fk === "$and") {
+        if (Array.isArray(fv)) {
+          console.log("$and");
+          console.log({ prefix, fk, fv, dp });
+
+          const cmpFns = [];
+          for (const av of fv) {
+            const cmpSym = nextSym();
+            cmpFns.push(cmpSym);
+            str += `function ${cmpSym} () {`;
+            str += parseToFnString(av);
+            str += `} `;
+          }
+
+          const andCnd = cmpFns.map((sym) => `${sym}()`).join(" && ");
+          str += `if (${andCnd}) { return true; } `;
+        } else {
+          console.warn("$and needs an array as input");
+        }
       }
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
@@ -137,7 +164,7 @@ function parseToFnString(
         str += `if (${dp} != null) { return true; } `;
       }
     } else if (typeof fv === "object") {
-      const hasOperators = Object.keys(fv).some((k) => operators.has(k));
+      const hasOperators = Object.keys(fv).some((k) => allOps.has(k));
 
       if (hasOperators) {
         str += parseToFnString(fv, fk);
