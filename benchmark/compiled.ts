@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { set } from "lodash";
 import { createHistogram, performance } from "node:perf_hooks";
-import { compileFilter } from "../src/compiled";
+import { compile } from "../src/compiled";
 
 const BENCHMARK_ROUNDS = 1000;
 
@@ -36,11 +36,11 @@ const filter = {
 };
 
 const compileHistogram = createHistogram();
-const compilerWrapped = performance.timerify(compileFilter, {
+const compilerWrapped = performance.timerify(compile, {
   histogram: compileHistogram,
 });
 
-const filterFn = compileFilter(filter);
+const filterFn = compile(filter);
 
 const filterHistogram = createHistogram();
 const filterWrapped = performance.timerify(() => persons.filter(filterFn), {

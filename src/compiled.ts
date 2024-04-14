@@ -166,38 +166,7 @@ function parseToFnString({
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
     } else if (typeof fv !== "object") {
-      const fvs = stringify(fv);
-      if (mode === Mode.Eq) {
-        str += `if (Array.isArray(${dp}) && ${dp}.includes(${fvs})) { return true; } `;
-        str += `if (${dp} === ${fvs}) { return true; } `;
-      }
-      if (mode === Mode.Ne) {
-        str += `if (${dp} !== ${fvs}) { return true; } `;
-      }
-      if (mode === Mode.Gt) {
-        str += `if (${dp} == null) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv > ${fvs})) { return true; } `;
-        str += `if (${dp} > ${fvs}) { return true; } `;
-      }
-      if (mode === Mode.Lt) {
-        str += `if (${dp} == null) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv < ${fvs})) { return true; } `;
-        str += `if (${dp} < ${fvs}) { return true; } `;
-      }
-      if (mode === Mode.Gte) {
-        str += `if (${dp} == null) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv >= ${fvs})) { return true; } `;
-        str += `if (${dp} >= ${fvs}) { return true; } `;
-      }
-      if (mode === Mode.Lte) {
-        str += `if (${dp} == null) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
-        str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv <= ${fvs})) { return true; } `;
-        str += `if (${dp} <= ${fvs}) { return true; } `;
-      }
+      str += genCode({ mode, dp, fk, fv });
       if (mode === Mode.In) {
         console.warn("$in needs an array as input");
       }
@@ -286,4 +255,50 @@ class SymbolCounter {
     this.count++;
     return `${this.prefix}${this.count}`;
   }
+}
+
+interface GenCodeOpts {
+  mode: Mode;
+  dp: string;
+  fk: string;
+  fv: string;
+}
+
+function genCode({ mode, dp, fk, fv }: GenCodeOpts) {
+  let str = "";
+
+  const fvs = stringify(fv);
+  if (mode === Mode.Eq) {
+    str += `if (Array.isArray(${dp}) && ${dp}.includes(${fvs})) { return true; } `;
+    str += `if (${dp} === ${fvs}) { return true; } `;
+  }
+  if (mode === Mode.Ne) {
+    str += `if (${dp} !== ${fvs}) { return true; } `;
+  }
+  if (mode === Mode.Gt) {
+    str += `if (${dp} == null) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv > ${fvs})) { return true; } `;
+    str += `if (${dp} > ${fvs}) { return true; } `;
+  }
+  if (mode === Mode.Lt) {
+    str += `if (${dp} == null) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv < ${fvs})) { return true; } `;
+    str += `if (${dp} < ${fvs}) { return true; } `;
+  }
+  if (mode === Mode.Gte) {
+    str += `if (${dp} == null) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv >= ${fvs})) { return true; } `;
+    str += `if (${dp} >= ${fvs}) { return true; } `;
+  }
+  if (mode === Mode.Lte) {
+    str += `if (${dp} == null) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.length === 0) { return false; } `;
+    str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv <= ${fvs})) { return true; } `;
+    str += `if (${dp} <= ${fvs}) { return true; } `;
+  }
+
+  return str;
 }
