@@ -27,8 +27,9 @@ const allOps = new Set([
 
 type Check = (doc: any) => Boolean;
 
-export function compileFilter(filter: Record<string, any>): Check {
-  const fn = parseToFnString(filter);
+export function compile(filter: Record<string, any>): Check {
+  const sc = new SymbolCounter();
+  const fn = parseToFnString({ filter, sc });
 
   console.log(fn);
 
@@ -49,14 +50,19 @@ enum Mode {
   And,
 }
 
-let symbolCount = 1;
-const nextSym = () => `sym_${symbolCount++}`;
+export interface ParseFnOpts {
+  filter: Record<string, any>;
+  prefix?: string;
+  mode?: Mode;
+  sc: SymbolCounter;
+}
 
-function parseToFnString(
-  filter: Record<string, any>,
+function parseToFnString({
+  filter,
   prefix = "",
   mode = Mode.Eq,
-): string {
+  sc,
+}: ParseFnOpts): string {
   /** fn string */
   let str = "";
 
@@ -65,7 +71,7 @@ function parseToFnString(
     /** filter value */
     const fv = filter[fk];
 
-    const cmpSym = nextSym();
+    const cmpSym = sc.inc();
     cmpFns.push(cmpSym);
     str += `function ${cmpSym} () {`;
 
@@ -77,37 +83,77 @@ function parseToFnString(
 
     if (allOps.has(fk)) {
       if (fk === "$eq") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Eq);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Eq,
+          sc,
+        });
       }
       if (fk === "$ne") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Ne);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Ne,
+          sc,
+        });
       }
       if (fk === "$gt") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Gt);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Gt,
+          sc,
+        });
       }
       if (fk === "$lt") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Lt);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Lt,
+          sc,
+        });
       }
       if (fk === "$gte") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Gte);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Gte,
+          sc,
+        });
       }
       if (fk === "$lte") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Lte);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Lte,
+          sc,
+        });
       }
       if (fk === "$in") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.In);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.In,
+          sc,
+        });
       }
       if (fk === "$nin") {
-        str += parseToFnString({ [prefix]: fv }, "", Mode.Nin);
+        str += parseToFnString({
+          filter: { [prefix]: fv },
+          prefix: "",
+          mode: Mode.Nin,
+          sc,
+        });
       }
       if (fk === "$and") {
         if (Array.isArray(fv)) {
           const cmpFns = [];
           for (const av of fv) {
-            const cmpSym = nextSym();
+            const cmpSym = sc.inc();
             cmpFns.push(cmpSym);
             str += `function ${cmpSym} () {`;
-            str += parseToFnString(av);
+            str += parseToFnString({ filter: av, sc: sc });
             str += `} `;
           }
 
@@ -169,7 +215,7 @@ function parseToFnString(
       const hasOperators = Object.keys(fv).some((k) => allOps.has(k));
 
       if (hasOperators) {
-        str += parseToFnString(fv, fk);
+        str += parseToFnString({ filter: fv, prefix: fk, sc: sc });
       } else {
         if (mode === Mode.Eq) {
           const fvs = stringify(JSON.stringify(fv));
@@ -185,7 +231,12 @@ function parseToFnString(
         if (mode === Mode.In) {
           if (Array.isArray(fv)) {
             for (const iv of fv) {
-              str += parseToFnString({ [fk]: iv }, prefix, Mode.Eq);
+              str += parseToFnString({
+                filter: { [fk]: iv },
+                prefix,
+                mode: Mode.Eq,
+                sc,
+              });
             }
           } else {
             console.warn("$in needs an array as input");
@@ -196,7 +247,12 @@ function parseToFnString(
         if (mode === Mode.Nin) {
           if (Array.isArray(fv)) {
             for (const iv of fv) {
-              str += parseToFnString({ [fk]: iv }, prefix, Mode.Ne);
+              str += parseToFnString({
+                filter: { [fk]: iv },
+                prefix,
+                mode: Mode.Ne,
+                sc,
+              });
             }
           } else {
             console.warn("$nin needs an array as input");
@@ -218,4 +274,16 @@ function stringify(v: string) {
   return JSON.stringify(v)
     .replace(/\u2028/g, "\\u2028")
     .replace(/\u2029/g, "\\u2029");
+}
+
+class SymbolCounter {
+  constructor(
+    private count: number = 0,
+    private prefix: string = "s_",
+  ) {}
+
+  inc() {
+    this.count++;
+    return `${this.prefix}${this.count}`;
+  }
 }

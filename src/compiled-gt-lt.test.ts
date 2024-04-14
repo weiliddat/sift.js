@@ -2,7 +2,7 @@ import { before, describe, test } from "mocha";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { Collection, MongoClient } from "mongodb";
 import { deepStrictEqual } from "node:assert";
-import { compileFilter } from "./compiled";
+import { compile } from "./compiled";
 
 let mongod: MongoMemoryServer;
 let mongo: MongoClient;
@@ -121,7 +121,7 @@ describe("compileFilter", function () {
       test(i.toString(), async function () {
         if (testCase.skip) this.skip();
 
-        const filterFn = compileFilter(testCase.filter);
+        const filterFn = compile(testCase.filter);
         const actual = testCase.input.filter(filterFn);
 
         await collection.insertMany(testCase.input);
@@ -223,7 +223,7 @@ describe("compileFilter", function () {
       test(i.toString(), async function () {
         if (testCase.skip) this.skip();
 
-        const filterFn = compileFilter(testCase.filter);
+        const filterFn = compile(testCase.filter);
         const actual = testCase.input.filter(filterFn);
 
         await collection.insertMany(testCase.input);
