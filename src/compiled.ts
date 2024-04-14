@@ -3,19 +3,18 @@ const operators = new Set([
   "$ne",
   "$gt",
   "$lt",
-
   "$gte",
   "$lte",
-
   "$in",
+
   "$nin",
-  "$exists",
-  "$mod",
-  "$all",
   "$and",
   "$or",
+  "$all",
   "$nor",
   "$not",
+  "$exists",
+  "$mod",
   "$size",
   "$type",
   "$regex",
@@ -42,6 +41,8 @@ enum Mode {
   Lt,
   Gte,
   Lte,
+  In,
+  Nin,
 }
 
 function parseToFnString(
@@ -64,7 +65,7 @@ function parseToFnString(
 
     if (operators.has(fk)) {
       if (fk === "$eq") {
-        str += parseToFnString({ [prefix]: fv });
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Eq);
       }
       if (fk === "$ne") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Ne);
@@ -80,6 +81,12 @@ function parseToFnString(
       }
       if (fk === "$lte") {
         str += parseToFnString({ [prefix]: fv }, "", Mode.Lte);
+      }
+      if (fk === "$in") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.In);
+      }
+      if (fk === "$nin") {
+        str += parseToFnString({ [prefix]: fv }, "", Mode.Nin);
       }
     } else if (typeof fv === "function") {
       console.error("Unsupported function");
@@ -116,6 +123,12 @@ function parseToFnString(
         str += `if (Array.isArray(${dp}) && ${dp}.some((dv) => dv <= ${fvs})) { return true; } `;
         str += `if (${dp} <= ${fvs}) { return true; } `;
       }
+      if (mode === Mode.In) {
+        console.warn("$in needs an array as input");
+      }
+      if (mode === Mode.Nin) {
+        console.warn("$nin needs an array as input");
+      }
     } else if (fv == null) {
       if (mode === Mode.Eq || mode === Mode.Gte || mode === Mode.Lte) {
         str += `if (${dp} == null) { return true; } `;
@@ -139,6 +152,26 @@ function parseToFnString(
         if (mode === Mode.Ne) {
           const fvs = stringify(JSON.stringify(fv));
           str += `if (JSON.stringify(${dp}) !== ${fvs}) { return true; } `;
+        }
+        if (mode === Mode.In) {
+          if (Array.isArray(fv)) {
+            for (const iv of fv) {
+              str += parseToFnString({ [fk]: iv }, prefix, Mode.Eq);
+            }
+          } else {
+            console.warn("$in needs an array as input");
+          }
+        }
+
+        /** TODO needs $and */
+        if (mode === Mode.Nin) {
+          if (Array.isArray(fv)) {
+            for (const iv of fv) {
+              str += parseToFnString({ [fk]: iv }, prefix, Mode.Ne);
+            }
+          } else {
+            console.warn("$nin needs an array as input");
+          }
         }
       }
     }
