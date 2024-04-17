@@ -166,6 +166,11 @@ describe(__filename + "#", function () {
       [{ groups: [111, 222, 333, 444] }, { groups: [222, 333, 444] }],
       [{ groups: [222, 333, 444] }],
     ],
+    [
+      { "groups.name": { $ne: null } },
+      [{ groups: [{ name: "bob" }] }, { groups: [] }, { other: [] }],
+      [{ groups: [{ name: "bob" }] }],
+    ],
 
     // $lt
     [{ $lt: 5 }, [3, 4, 5, 6], [3, 4], false],
@@ -810,7 +815,7 @@ describe(__filename + "#", function () {
       // out of the box
       assert.equal(
         JSON.stringify(array.filter(sift(filter))),
-        JSON.stringify(matchArray)
+        JSON.stringify(matchArray),
       );
 
       // custom
@@ -819,7 +824,7 @@ describe(__filename + "#", function () {
       });
       assert.equal(
         JSON.stringify(array.filter(tester)),
-        JSON.stringify(matchArray)
+        JSON.stringify(matchArray),
       );
 
       if (process.env.VALIDATE_WITH_MONGODB && testWithMongo !== false) {
@@ -852,9 +857,9 @@ async function testNativeQuery(filter, array, matchArray) {
         const copy = { ...result };
         delete copy._id;
         return copy;
-      })
+      }),
     ),
-    JSON.stringify(matchArray)
+    JSON.stringify(matchArray),
   );
 
   await promisify(db.dropDatabase.bind(db))();
