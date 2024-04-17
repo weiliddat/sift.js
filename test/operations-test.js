@@ -168,8 +168,13 @@ describe(__filename + "#", function () {
     ],
     [
       { "groups.name": { $ne: null } },
-      [{ groups: [{ name: "bob" }] }, { groups: [] }, { other: [] }],
-      [{ groups: [{ name: "bob" }] }],
+      [
+        { groups: [{ name: "bob" }] },
+        { groups: [] },
+        { other: [] },
+        { groups: null },
+      ],
+      [{ groups: [{ name: "bob" }] }, { groups: [] }],
     ],
 
     // $lt

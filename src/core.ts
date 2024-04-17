@@ -112,6 +112,10 @@ const walkKeyPathValues = (
         return false;
       }
     }
+
+    // iteration of arrays over and down to leaf element
+    // return false
+    return next(item, key, owner, depth === 0, depth === keyPath.length);
   }
 
   if (depth === keyPath.length || item == null) {
