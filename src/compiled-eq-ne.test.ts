@@ -56,6 +56,21 @@ describe("compileFilter", function () {
         ],
         expected: [{ foo: { bar: "baz" } }],
       },
+      /**
+       * Implicit array access
+       */
+      {
+        skip: true,
+        filter: { "foo.items.name": "bar" },
+        input: [
+          { foo: { items: { name: "bar" } } },
+          { foo: { items: [{ name: "bar" }] } },
+        ],
+        expected: [
+          { foo: { items: { name: "bar" } } },
+          { foo: { items: [{ name: "bar" }] } },
+        ],
+      },
       {
         filter: { "foo.bar": null },
         input: [
