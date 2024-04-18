@@ -1,7 +1,7 @@
 {
   "name": "weiliddat-sift",
   "description": "MongoDB query filtering in JavaScript",
-  "version": "18.1.1",
+  "version": "18.2.0",
   "repository": "weiliddat/sift.js",
   "author": {
     "name": "Chiawei Ong",
