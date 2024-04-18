@@ -113,8 +113,8 @@ const walkKeyPathValues = (
       }
     }
 
-    // iteration of arrays over and down to leaf element
-    // return false
+    // iterated over array but yet to find result
+    // need this to prevent walking deeper keys on arrays
     return next(item, key, owner, depth === 0, depth === keyPath.length);
   }
 

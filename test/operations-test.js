@@ -171,10 +171,20 @@ describe(__filename + "#", function () {
       [
         { groups: [{ name: "bob" }] },
         { groups: [] },
-        { other: [] },
         { groups: null },
+        { other: [] },
       ],
       [{ groups: [{ name: "bob" }] }, { groups: [] }],
+    ],
+    [
+      { "groups.name": { $eq: null } },
+      [
+        { groups: [{ name: "bob" }] },
+        { groups: [] },
+        { groups: null },
+        { other: [] },
+      ],
+      [{ groups: null }, { other: [] }],
     ],
 
     // $lt
