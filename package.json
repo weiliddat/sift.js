@@ -7,7 +7,7 @@
     "name": "Chiawei Ong",
     "email": "chiawei.ong@parcellab.com"
   },
-  "main": "./lib/index.js",
+  "main": "./index.js",
   "types": "./lib/index.d.ts",
   "license": "MIT",
   "engines": {
